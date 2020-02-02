@@ -170,6 +170,12 @@ function drawTarget() {
 }
 
 function startTrial(e) {
+	var point = getPoint(e);
+
+	// Missed the circle
+	if (Math.abs(point.x - arenaWidth/2) > target.size/2 || Math.abs(point.y > arenaHeight/2) > target.size/2)
+		return;
+
 	drawTarget();
 	positions = [];
 	startTime = new Date();
@@ -179,7 +185,8 @@ function startTrial(e) {
 	foundp90y = false;
 
 	initChart();
-	pushPoint(getPoint(e));
+	pushPoint(point);
+	capture = true;
 }
 
 function getFillColor(fp10, fp90) {
@@ -292,7 +299,6 @@ document.addEventListener('mousedown', e => {
 	}
 	else {
 		startTrial(e);
-		capture = true;
 	}
 });
 
