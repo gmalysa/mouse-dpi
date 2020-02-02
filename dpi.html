@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>DPI Calibration</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+<style>
+</style>
+</head>
+<body>
+<div>
+	<div style="display: inline-block;">
+		<canvas style="display: inline" id="xPlot"></canvas>
+	</div>
+	<div style="display: inline-block;">
+		<canvas style="display: inline" id="yPlot"></canvas>
+	</div>
+	<div id="results" style="display: inline-block;">
+	</div>
+</div>
+<div>
+	<canvas id="arena"></canvas>
+</div>
+
+<script lang="text/javascript">
+const arenaWidth = 800;
+const arenaHeight = 600;
+
+var xctx = document.getElementById('xPlot');
+xctx.width = 500;
+xctx.height = 500;
+var xChart = new Chart(xctx, {
+	type : 'scatter',
+	data : {
+		datasets : []
+	},
+	options : {
+		animation : {
+			duration : 0
+		},
+		hover : {
+			animationDuration : 0
+		},
+		responsiveAnimationDuration : 0
+	}
+});
+
+var yctx = document.getElementById('yPlot');
+yctx.width = 500;
+yctx.height = 500;
+var yChart = new Chart(yctx, {
+	type : 'scatter',
+	data : {
+		datasets : []
+	},
+	options : {
+		animation : {
+			duration : 0
+		},
+		hover : {
+			animationDuration : 0
+		},
+		responsiveAnimationDuration : 0
+	}
+});
+var arena = document.getElementById('arena');
+var startTime = new Date();
+
+function initChart() {
+	if (xChart.data.datasets.length > 0)
+		xChart.data.datasets.pop();
+
+	xChart.data.datasets.push({
+		label : 'Mouse X Position',
+		data : [],
+		pointBackgroundColor : [],
+		backgroundColor : [],
+		showLine : true,
+		fill : false,
+	});
+
+	xChart.update();
+
+	if (yChart.data.datasets.length > 0)
+		yChart.data.datasets.pop();
+
+	yChart.data.datasets.push({
+		label : 'Mouse Y Position',
+		data : [],
+		pointBackgroundColor : [],
+		backgroundColor : [],
+		showLine : true,
+		fill : false,
+	});
+
+	yChart.update();
+}
+
+var capture = false;
+var realtime = true;
+var quickcast = false;
+var quickcastKeyUp = false;
+var positions = [];
+var foundp10x = false;
+var foundp10y = false;
+var foundp90x = false;
+var foundp90y = false;
+var p10 = 0;
+var p90 = 0;
+var target = {
+	x : 0,
+	y : 0,
+	size : 64
+};
+
+function getPoint(e) {
+	return {
+		t : (new Date()).getTime(),
+		x : e.pageX - arena.offsetLeft,
+		y : e.pageY - arena.offsetTop
+	};
+}
+
+function drawTarget() {
+	var ctx = arena.getContext('2d');
+	arena.width = arenaWidth;
+	arena.height = arenaHeight;
+
+	ctx.clearRect(0, 0, arenaWidth, arenaHeight);
+	ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+	ctx.strokeStyle = 'rgb(0, 192, 0)';
+	ctx.save();
+
+	target.x = (Math.random() * arenaWidth) | 0;
+	target.y = (Math.random() * arenaHeight) | 0;
+
+	console.log(target);
+	ctx.beginPath();
+	ctx.arc(target.x, target.y, target.size/2, 0, 2*Math.PI);
+	ctx.stroke();
+}
+
+function startTrial(e) {
+	drawTarget();
+	positions = [];
+	startTime = new Date();
+	foundp10x = false;
+	foundp10y = false;
+	foundp90x = false;
+	foundp90y = false;
+
+	initChart();
+	pushPoint(getPoint(e));
+}
+
+function pushPoint(point) {
+	var xFillColor = 'rgb(0, 0, 0)';
+	if (foundp10x)
+		xFillColor = 'rgb(192, 0, 0)';
+	if (foundp90x)
+		xFillColor = 'rgb(0, 0, 192)';
+
+	positions.push(point);
+
+	xChart.data.datasets[0].data.push({
+		x : point.t - startTime,
+		y : point.x
+	});
+	xChart.data.datasets[0].pointBackgroundColor.push(xFillColor);
+
+	yChart.data.datasets[0].data.push({
+		x : point.t - startTime,
+		y : point.y
+	});
+
+}
+
+function trialProgress(e) {
+	var point = getPoint(e);
+
+	var dx = point.x - positions[0].x;
+	var dy = point.y - positions[0].y;
+
+	var p10x = Math.abs(target.x - positions[0].x) * 0.1;
+	var p10y = Math.abs(target.y - positions[0].y) * 0.1;
+	var p90x = Math.abs(target.x - positions[0].x) * 0.9;
+	var p90y = Math.abs(target.y - positions[0].y) * 0.9;
+
+	if (!foundp10x && Math.abs(dx) > p10x) {
+		foundp10x = true;
+		console.log('10% start of rise time for X at positions[' + positions.length +']');
+		console.log('Time: '+point.t);
+		p10 = positions.length;
+	}
+
+	if (!foundp10y && Math.abs(dy) > p10y) {
+		foundp10y = true;
+		console.log('10% start of rise time for Y at positions[' + positions.length + ']');
+		console.log('Time: '+point.t);
+		p10 = positions.length;
+	}
+
+	if (!foundp90x && Math.abs(dx) > p90x) {
+		foundp90x = true;
+		console.log('90% start of rise time for X at positions[' + positions.length + ']');
+		console.log('Time: '+point.t);
+		p90 = positions.length;
+	}
+
+	if (!foundp90y && Math.abs(dy) > p90y) {
+		foundp90y = true;
+		console.log('90% start of rise time for Y at positions[' + positions.length + ']');
+		console.log('Time: '+point.t);
+		p90 = positions.length;
+	}
+
+	pushPoint(point);
+
+	if (realtime) {
+		xChart.update();
+		yChart.update();
+	}
+}
+
+function checkTrial() {
+	if (positions.length == 0)
+		return;
+
+	var point = positions[positions.length - 1];
+	var dx = point.x - target.x;
+	var dy = point.y - target.y;
+	var hit = (Math.abs(dx) < (target.size/2)) && (Math.abs(dy) < (target.size/2));
+
+	if (hit) {
+		console.log('10-90 rise time: ' + (positions[p90].t - positions[p10].t) + ' ms');
+		console.log('Hit target in ' + (point.t - positions[0].t) + ' ms');
+		capture = false;
+	}
+	else {
+		console.log('Miss by '+Math.sqrt(dx*dx + dy*dy) + ' pixels');
+	}
+}
+
+document.addEventListener('mousemove', e => {
+	if (capture) {
+		trialProgress(e);
+	}
+});
+
+document.addEventListener('mousedown', e => {
+	if (capture) {
+		if (!quickcast && !quickcastKeyUp) {
+			checkTrial(e);
+		}
+	}
+	else {
+		startTrial(e);
+		capture = true;
+	}
+});
+
+document.addEventListener('keydown', e => {
+	if (capture && quickcast && !quickcastKeyUp) {
+		checkTrial();
+	}
+});
+
+document.addEventListener('keyup', e => {
+	if (capture && quickcast && quickcastKeyUp) {
+		checkTrial();
+	}
+});
+</script>
+</body>
+</html>
