@@ -93,7 +93,7 @@ function initChart() {
 
 function setCanvasSizes() {
 	plotWidth = ((window.innerWidth * .90)/2) | 0;
-	plotHeight = 500;
+	plotHeight = ((window.innerHeight * 0.9)/2) | 0;
 
 	xctx.parentNode.style.width = plotWidth+'px';
 	xctx.parentNode.style.height = plotHeight+'px';
@@ -102,6 +102,7 @@ function setCanvasSizes() {
 	yctx.parentNode.style.height = plotHeight+'px';
 
 	arenaWidth = plotWidth*2;
+	arenaHeight = ((window.innerHeight)/2) | 0;
 	arena.width = arenaWidth;
 	arena.height = arenaHeight;
 }
