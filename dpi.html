@@ -22,12 +22,10 @@
 </div>
 
 <script lang="text/javascript">
-const arenaWidth = 800;
-const arenaHeight = 600;
+var arenaWidth = 800;
+var arenaHeight = 700;
 
 var xctx = document.getElementById('xPlot');
-xctx.width = 500;
-xctx.height = 500;
 var xChart = new Chart(xctx, {
 	type : 'scatter',
 	data : {
@@ -45,8 +43,6 @@ var xChart = new Chart(xctx, {
 });
 
 var yctx = document.getElementById('yPlot');
-yctx.width = 500;
-yctx.height = 500;
 var yChart = new Chart(yctx, {
 	type : 'scatter',
 	data : {
@@ -95,6 +91,24 @@ function initChart() {
 	yChart.update();
 }
 
+setCanvasSizes();
+window.addEventListener('resize', setCanvasSizes);
+
+function setCanvasSizes() {
+	plotWidth = ((window.innerWidth * .90)/2) | 0;
+	plotHeight = 500;
+
+	xctx.parentNode.style.width = plotWidth+'px';
+	xctx.parentNode.style.height = plotHeight+'px';
+
+	yctx.parentNode.style.width = plotWidth+'px';
+	yctx.parentNode.style.height = plotHeight+'px';
+
+	arenaWidth = plotWidth*2;
+	arena.width = arenaWidth;
+	arena.height = arenaHeight;
+}
+
 var capture = false;
 var realtime = true;
 var quickcast = false;
@@ -122,8 +136,6 @@ function getPoint(e) {
 
 function drawTarget() {
 	var ctx = arena.getContext('2d');
-	arena.width = arenaWidth;
-	arena.height = arenaHeight;
 
 	ctx.clearRect(0, 0, arenaWidth, arenaHeight);
 	ctx.fillStyle = 'rgba(0, 0, 0, 0)';
