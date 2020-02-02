@@ -152,12 +152,18 @@ function startTrial(e) {
 	pushPoint(getPoint(e));
 }
 
+function getFillColor(fp10, fp90) {
+	var fill = 'rgb(0, 0, 0)';
+	if (fp10)
+		fill = 'rgb(192, 0, 0)';
+	if (fp90)
+		fill = 'rgb(0, 0, 192)';
+	return fill;
+}
+
 function pushPoint(point) {
-	var xFillColor = 'rgb(0, 0, 0)';
-	if (foundp10x)
-		xFillColor = 'rgb(192, 0, 0)';
-	if (foundp90x)
-		xFillColor = 'rgb(0, 0, 192)';
+	var xFillColor = getFillColor(foundp10x, foundp90x);
+	var yFillColor = getFillColor(foundp10y, foundp90y);
 
 	positions.push(point);
 
@@ -171,6 +177,7 @@ function pushPoint(point) {
 		x : point.t - startTime,
 		y : point.y
 	});
+	yChart.data.datasets[0].pointBackgroundColor.push(yFillColor);
 
 }
 
